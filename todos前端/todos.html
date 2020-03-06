@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 
@@ -105,28 +106,21 @@
             },
             deleteItem(i) {
                 //请学生完成删除数据库数据的功能，注意：数据库删除成功后，再进行下面对象数组的删除
-                // axios.delete(this.shareurl + 'delete/' + this.todo[i].id)
-                //         .then(response => {
-                //             this.todo.shift(this.todo[i].id)
-                //         })
-                //         .catch(error => console.log(error));// 请求失败处理
                 axios.delete(this.shareurl + 'delete/' + this.todo[i].id)
-                        .then(function (res) {
-                            if(res.body.row > 0) {
-                                this.todo.splice(i, 1);//从下标i开始删除1一个元素，即删除下表为i的元素
-                            }
-                        } , function(res) {
-                            //这里是处理错误的回调
-                            console.log(res)
-                        });
-                this.todo.splice(i, 1)
+                    .then(response => {
+                        if (response.data.rows > 0) {
+                            this.todo.splice(i, 1)
+                        }
+                    })
+                    .catch(error => console.log(error));// 请求失败处理
             },
             filter(evt) {
                 this.type = evt.currentTarget.dataset.filter
             },
             clear() {
                 axios.delete(this.shareurl + 'deleteDone')
-                        .then(response => {
+                    .then(response => {
+                        if (response.data.rows > 0) {
                             for (let i = 0, len = this.todo.length; i < len; i++) {
                                 const item = this.todo[i]
                                 if (item.done) {
@@ -135,17 +129,9 @@
                                     i--
                                 }
                             }
-                        })
-                        .catch(error => console.log(error));
-                
-                for (let i = 0, len = this.todo.length; i < len; i++) {
-                    const item = this.todo[i]
-                    if (item.done) {
-                        this.todo.splice(i, 1)
-                        len--
-                        i--
-                    }
-                }
+                        }
+                    })
+                    .catch(error => console.log(error));
             }
         }
     })
