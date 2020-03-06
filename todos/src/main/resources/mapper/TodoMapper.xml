@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace指用户自定义的命名空间。 -->
+<mapper namespace="com.xm.mapper.TodoMapper">
+
+    <select id="selectTodos"  resultType="Todo">
+        select id,content,done from t_todos order by id desc
+    </select>
+
+    <!-- 插入statement 
+        useGeneratedKeys：开启主键回写
+        keyColumn：主键列名(既数据库表中的列名)
+        keyProperty：主键对应的属性名（实体中的属性名）
+        插入数据时，传过来的参数是一个对象，#{***}中的名字必须与对象中属性名一致
+    -->
+    <insert id="saveTodo" parameterType="Todo"   useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into t_todos (content,done)  values(#{content},#{done})
+    </insert>
+
+    <!-- update操作  parameterType="Todo" 需要一个Todo对象作为参数-->
+    <update id="modifyTodo" parameterType="Todo">
+        update t_todos set content=#{content},done=#{done} where id=#{id}  
+    </update>
+
+    <!-- delete操作 parameterType="int"表示该查询语句需要一个int类型的参数-->
+    <delete id="removeTodo" parameterType="Integer">
+        <!--//请学生完成-->
+        delete from t_todos where id=#{id}
+    </delete>
+
+    <delete id="removeDone">
+        delete from t_todos where done = 1
+    </delete>
+
+</mapper>

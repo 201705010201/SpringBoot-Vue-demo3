@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/vue/2.1.6/vue.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"> </script>
+
+</head>
+
+<body>
+    <div id="app" class="container">
+        <h3 class="mt-3">todos(手机版F12)</h3>
+        <div class="mt-3">
+            <input class="form-control" v-model="inputText" placeholder="下一步行动计划是？"></input><br>
+            <button class="btn-primary btn-block" @click="newTodo">确定</button>
+        </div>
+        <ul class="list-group mt-4">
+            <li class="list-group-item" v-for="(item,index) in todo"
+                v-if="type === 'all' || (type === 'active' && !item.done) || (type === 'done' && item.done)">
+                <label class="form-check-label">
+                    <input type="checkbox" v-model="item.done" @change="toggle(index)" />
+                    {{ item.content }}
+                </label>
+                <button class="btn float-right" @click="deleteItem(index)">X</button>
+            </li>
+        </ul><br><br>
+
+        <div class="navbar navbar-expand-sm fixed-bottom">
+            <div class="nav-item mr-4">
+                <div class="strong">{{ left }} items left</div>
+            </div>
+
+            <div class='nav-item p-2' :class="type === 'all' ? 'bg-light' : ''" data-filter='all' @click="filter">
+                All
+            </div>
+            <div class='nav-item p-2' :class="type === 'active' ? 'bg-light' : ''" data-filter='active' @click="filter">
+                Active
+            </div>
+            <div class='nav-item p-2' :class="type === 'done' ? 'bg-light' : ''" data-filter='done' @click="filter">
+                Done
+            </div>
+
+            <button class="nav-item" @click="clear">Clear done</button>
+        </div>
+    </div>
+</body>
+
+<script>
+
+    new Vue({
+        el: '#app',
+        data: {
+            todo: [],
+            type: 'all',
+            inputText: '',
+            shareurl: 'http://localhost:8080/todo/'
+        },
+        created() {  //这里mounted和created生命周期函数区别
+            //发送get请求
+            axios.get(this.shareurl + 'select')
+                .then(response => {
+                    this.todo = response.data
+                    for (let i = 0, len = this.todo.length; i < len; i++) {
+                        this.todo[i].done == 0 ? this.todo[i].done = false : this.todo[i].done = true
+                    }
+                })
+                .catch(error => console.log(error));// 请求失败处理
+        },
+        computed: {
+            left() {
+                let num = 0
+                for (let i = 0, len = this.todo.length; i < len; i++) {
+                    if (!this.todo[i].done) { num++ }
+                }
+                return num
+            }
+        },
+        methods: {
+            toggle(i) {
+                axios.put(this.shareurl + 'update', { id: this.todo[i].id, content: this.todo[i].content, done: this.todo[i].done ? 1 : 0 })
+                    .then(response => {
+                        console.log(response)
+                    })
+                    .catch(error => console.log(error));// 请求失败处理
+            },
+            newTodo() {
+                if (this.inputText.trim() === '') {
+                    return
+                }
+                axios.post(this.shareurl + 'insert', { content: this.inputText, done: 0 })
+                    .then(response => {
+                        //unshift() 方法可向数组的开头添加一个或更多元素，并返回新的长度。
+                        this.todo.unshift({
+                            id: response.data.id,
+                            content: this.inputText,
+                            done: false
+                        })
+                        this.inputText = ''
+                    })
+                    .catch(error => console.log(error));// 请求失败处理
+            },
+            deleteItem(i) {
+                //请学生完成删除数据库数据的功能，注意：数据库删除成功后，再进行下面对象数组的删除
+                // axios.delete(this.shareurl + 'delete/' + this.todo[i].id)
+                //         .then(response => {
+                //             this.todo.shift(this.todo[i].id)
+                //         })
+                //         .catch(error => console.log(error));// 请求失败处理
+                axios.delete(this.shareurl + 'delete/' + this.todo[i].id)
+                        .then(function (res) {
+                            if(res.body.row > 0) {
+                                this.todo.splice(i, 1);//从下标i开始删除1一个元素，即删除下表为i的元素
+                            }
+                        } , function(res) {
+                            //这里是处理错误的回调
+                            console.log(res)
+                        });
+                this.todo.splice(i, 1)
+            },
+            filter(evt) {
+                this.type = evt.currentTarget.dataset.filter
+            },
+            clear() {
+                axios.delete(this.shareurl + 'deleteDone')
+                        .then(response => {
+                            for (let i = 0, len = this.todo.length; i < len; i++) {
+                                const item = this.todo[i]
+                                if (item.done) {
+                                    this.todo.splice(i, 1)
+                                    len--
+                                    i--
+                                }
+                            }
+                        })
+                        .catch(error => console.log(error));
+                
+                for (let i = 0, len = this.todo.length; i < len; i++) {
+                    const item = this.todo[i]
+                    if (item.done) {
+                        this.todo.splice(i, 1)
+                        len--
+                        i--
+                    }
+                }
+            }
+        }
+    })
+</script>
+
+</html>

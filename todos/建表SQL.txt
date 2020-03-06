@@ -1,0 +1,23 @@
+/*创建数据库*/
+create database mis;
+
+/*打开数据库*/
+use mis;
+
+/*删除已有表t_todos*/
+drop table t_todos;
+
+/*建表t_todos*/
+create table t_todos(
+  id int auto_increment,
+  content text not null,
+  done tinyint(1)  not null,
+  primary key (id)
+);
+
+insert into t_todos (content,done) values 
+ ('学习 vue',1),
+ ('学习 spring boot',0),
+ ('学习 spring security',0),
+ ('学习 kbone',0);
+
